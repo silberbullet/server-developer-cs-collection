@@ -111,3 +111,26 @@ Spring Boot를 Init 하면 @SrpingBootApplication 어노테이션이 붙인 클�
 ```
 
 main 메소드 안에는 SpringApplication의 static 메소드 run이 실행이 된다. run 안에는 어노테이션을 붙였던 해당 파일.class가 파라미터로 들어간다. `이 때 부터 Spring Boot빈이 생성하게 된다.` 해당 빈은 @SpringBootApplication 어노테이션에 따라 Bean (Component)를 탐색하고 필요시 빈을 생성하고 관리하게 되는 것이다.👍
+
+```java
+    @SpringBootApplication
+    public class TransactionApplication implements CommandLineRunner {
+
+        public static void main(String[] args) {
+            SpringApplication.run(TransactionApplication.class, args);
+        }
+
+        @Autowired
+        List<Object> objects;
+
+        @Override
+        public void run(String... args) throws Exception {
+            for (Object object : objects) {
+                System.out.println(object.getClass().getName());
+            }
+        }
+
+    }
+```
+
+다음을 통해서 Spring Boot가 자동으로 빈으로 만들어주는 객체를 확인이 가능하다.

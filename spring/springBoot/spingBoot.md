@@ -4,13 +4,13 @@ Spring Boot는 Spring Framework을 쉽게 사용하기 위해 나온 기술</br>
 
 ## 목차
 
-[1.스프링 부트란?](스프링-부트란?)
-[2.스프링 부트의 중요 목적](스프링-부트의-중요-목적)
-[3.build.gradle의 pulgins란](build.gradle의-pulgins란?)
-[4.Spring의 AutoConfiguration](Spring의-AutoConfiguration?)
-[5.Spring Boot의 run](Spring-Boot의-run)
+[1.스프링 부트란?](1.스프링-부트란?)
+[2.스프링 부트의 중요 목적](2.스프링-부트의-중요-목적)
+[3.build.gradle의 pulgins란](3.build.gradle의-pulgins란?)
+[4.Spring의 AutoConfiguration](4.Spring의-AutoConfiguration?)
+[5.Spring Boot의 run](5.Spring-Boot의-run)
 
-## 1. 스프링 부트란?
+### 1.스프링 부트란?
 
     - 독립적이고, 실제 제품 수준의 애플리케이션을 쉽게 만들어준다.
     - 특정 버전의 서드파티 라이브러리들을 특정한 방법으로 사용할 수 있도록 확장점을 제공한다.
@@ -20,14 +20,14 @@ Spring Boot는 Spring Framework을 쉽게 사용하기 위해 나온 기술</br>
     - war로 묶어서 배포 할수 있다.
     - 커맨드 라인 툴도 제공한다.
 
-## 2. 스프링 부트의 중요 목적
+### 2. 스프링 부트의 중요 목적
 
     - 아주 손쉽게 프로젝트를 시작할 수 있도록 한다.
     - 주관을 가지고 만들어진 제품이지만 요구사항이 다양해짐으로써 주어진 틀에서도 얼마든지 벗어 날 수 있도록 한다. `커스텀마이징 가능` (최대 장점이라 생각함)
     - 프로덕션을 위한 모니터링, 헬스 체크등의 기능도 제공한다.
     - 코드제네레이션을 제공하는 도구가 아니다. XML 설정은 필요 없음
 
-## 3. build.gradle의 pulgins란?
+### 3. build.gradle의 pulgins란?
 
     ```
     plugins {
@@ -43,7 +43,7 @@ Spring Boot는 Spring Framework을 쉽게 사용하기 위해 나온 기술</br>
 
 `io.spring.dependency-management` 이 플러그인이 **핵심**이라고 생각한다. 이 플러그인으로 통해 현재 사용하고 있는 spring boot 버전에 맞게 호환이 가능한 dependencies의 라이브러리 버전들을 가져올 수 있게 된다 dependencies의 Spring boot 문서에 굳이 버전을 안 붙여도 된다는 이유기도 하다.
 
-## 4. Spring Boot의 AutoConfiguration?
+### 4. Spring Boot의 AutoConfiguration?
 
 Spring Boot는 dependencies의 라이브러리들의 자동 설정을 지원한다. gradle 빌드 시 Gradle에 `org.springframework.boot:srping-boot-autoconfigure` 라이브러리를 가져온다. 해당 라이브러리의 META-INF를 들어가게 된다면 Spring가 자동으로 읽을 클래스들 목록으로 정해둔 `spring.factories`파일이 존재한다. 정확히는 `org.springframework.boot.autoconfigure.admin.SpringApplicationAdminJmxAutoConfiguration`키 값의 Value들을 읽는다.
 
@@ -95,7 +95,7 @@ Spring Boot는 dependencies의 라이브러리들의 자동 설정을 지원한�
 
 JDBC 설정들을 확인 할수가 있다. 우리가 왜 `application.yml` 파일에 spring.datasource를 작성하는 알 수가 있다.
 
-## 5. Spring Boot의 run
+### 5. Spring Boot의 run
 
 Spring Boot를 Init 하면 @SrpingBootApplication 어노테이션이 붙인 클래스가 생긴다. 메소드를 보면 `public static void main(String[] args)`가 보인다.
 

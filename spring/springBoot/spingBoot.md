@@ -27,7 +27,7 @@ Spring Boot는 Spring Framework을 쉽게 사용하기 위해 나온 기술</br>
     - 프로덕션을 위한 모니터링, 헬스 체크등의 기능도 제공한다.
     - 코드제네레이션을 제공하는 도구가 아니다. XML 설정은 필요 없음
 
-### 3. build.gradle의 pulgins란?
+### 3. build.gradle의 plugins란?
 
     ```
     plugins {

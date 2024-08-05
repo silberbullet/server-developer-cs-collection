@@ -4,13 +4,13 @@ Spring Boot는 Spring Framework을 쉽게 사용하기 위해 나온 기술</br>
 
 ## 목차
 
-[1.스프링 부트란?](1.스프링-부트란?)
-[2.스프링 부트의 중요 목적](2.스프링-부트의-중요-목적)
-[3.build.gradle의 pulgins란](3.build.gradle의-pulgins란?)
-[4.Spring의 AutoConfiguration](4.Spring의-AutoConfiguration?)
-[5.Spring Boot의 run](5.Spring-Boot의-run)
+[1.스프링 부트란?](1.-스프링-부트란?)</br>
+[2.스프링 부트의 중요 목적](2.-스프링-부트의-중요-목적)</br>
+[3.build.gradle의 pulgins란](3.-build.gradle의-pulgins란?)</br>
+[4.Spring의 AutoConfiguration](4.-Spring의-AutoConfiguration?)</br>
+[5.Spring Boot의 run](5.-Spring-Boot의-run)</br>
 
-### 1.스프링 부트란?
+### 1. 스프링 부트란?
 
     - 독립적이고, 실제 제품 수준의 애플리케이션을 쉽게 만들어준다.
     - 특정 버전의 서드파티 라이브러리들을 특정한 방법으로 사용할 수 있도록 확장점을 제공한다.

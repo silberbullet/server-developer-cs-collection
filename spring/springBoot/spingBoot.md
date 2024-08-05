@@ -7,7 +7,7 @@ Spring Boot는 Spring Framework을 쉽게 사용하기 위해 나온 기술</br>
 1. [스프링 부트란?](#1-스프링-부트란)
 2. [스프링 부트의 중요 목적](#2-스프링-부트의-중요-목적)
 3. [build.gradle의 plugins란?](#3-buildgradle의-plugins란)
-4. [Spring의 AutoConfiguration](#4-spring의-autoconfiguration)
+4. [Spring의 AutoConfiguration](#4-spring-boot의-autoconfiguration)
 5. [Spring Boot의 run](#5-spring-boot의-run)
 
 ### 1. 스프링 부트란?

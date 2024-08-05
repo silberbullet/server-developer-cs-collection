@@ -43,7 +43,7 @@ Spring Boot는 Spring Framework을 쉽게 사용하기 위해 나온 기술</br>
 
 `io.spring.dependency-management` 이 플러그인이 **핵심**이라고 생각한다. 이 플러그인으로 통해 현재 사용하고 있는 spring boot 버전에 맞게 호환이 가능한 dependencies의 라이브러리 버전들을 가져올 수 있게 된다 dependencies의 Spring boot 문서에 굳이 버전을 안 붙여도 된다는 이유기도 하다.
 
-### 4. Spring Boot의 AutoConfiguration?
+### 4. Spring Boot의 AutoConfiguration
 
 Spring Boot는 dependencies의 라이브러리들의 자동 설정을 지원한다. gradle 빌드 시 Gradle에 `org.springframework.boot:srping-boot-autoconfigure` 라이브러리를 가져온다. 해당 라이브러리의 META-INF를 들어가게 된다면 Spring가 자동으로 읽을 클래스들 목록으로 정해둔 `spring.factories`파일이 존재한다. 정확히는 `org.springframework.boot.autoconfigure.admin.SpringApplicationAdminJmxAutoConfiguration`키 값의 Value들을 읽는다.
 

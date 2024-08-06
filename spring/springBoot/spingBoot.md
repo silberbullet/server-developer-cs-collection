@@ -9,6 +9,7 @@ Spring Boot는 Spring Framework을 쉽게 사용하기 위해 나온 기술</br>
 3. [build.gradle의 plugins란?](#3-buildgradle의-plugins란)
 4. [Spring의 AutoConfiguration](#4-spring-boot의-autoconfiguration)
 5. [Spring Boot의 run](#5-spring-boot의-run)
+6. [Spring Boot는 HikariCP를 지향한다](#6-spring-boot는-HikariCP를-지향한다.)
 
 ### 1. 스프링 부트란?
 
@@ -134,3 +135,47 @@ main 메소드 안에는 SpringApplication의 static 메소드 run이 실행이 
 ```
 
 다음을 통해서 Spring Boot가 자동으로 빈으로 만들어주는 객체를 확인이 가능하다.
+
+### 6. Spring Boot는 HikariCP를 지향한다.
+
+Spring Boot 문서를 참조해보면 다양한 Conneection Pool중 HikariCP를 되도록 사용할 것이라고 한다. Spring Boot가 자동으로 생성되는 Bean 목록을 살펴보면
+`com.zaxxer.hikari.HikariDataSoucre`를 가져온다. HikariCP는 타 CP 중에 가장 성능이 좋은 걸로 확인이 됐다.
+
+**Connection Pool 이란?**
+
+    Connection Pool 인터페이스는 DataSoure를 통해서 사용할 수 있도록 한다. Connection Pool의 구현체가 HikariCp이다.
+
+    Connection Pool은 미리 DB와 연결을 맺어 놓는다. 이를 connection이라 한다. Connection Pool은 기본적으로 여러 connection을 가지고 있으며, 사용자가 직접 connection 수를 조절 할 수 있다.
+
+    사용자가 DB를 이용하고 싶을 때는 DataSource를 통해서 Connection Pool에서connection을 빌려온다. 사용자가 connection을 완료 시키면 DataSource 쪽에서는 Connection Pool에게 사용 완료한 connection을 되돌려준다.
+
+**무한정 Connection을 요청하기만 하면?**
+
+```java
+    @SpringBootApplication
+    public class TransactionApplication implements CommandLineRunner {
+
+        public static void main(String[] args) {
+            SpringApplication.run(TransactionApplication.class, args);
+        }
+
+        @Autowired
+        DataSource datasource;
+
+        @Override
+        public void run(String... args) throws Exception {
+
+            List<Connection> list = new ArrayList<>();
+
+            while (true) {
+                Connection conn = datasource.getConnection();
+
+                list.add(conn);
+
+                Thread.sleep(100);
+            }
+        }
+    }
+```
+
+위와 같이 지속적으로 Connection을 반환하지 않고 가져오게 된다면 Hikari는 더 이상 가져올 connection이 없어 서버가 죽어버리게 된다.

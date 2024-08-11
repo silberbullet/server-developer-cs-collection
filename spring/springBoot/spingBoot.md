@@ -237,4 +237,4 @@ Spring Boot 문서를 참조해보면 다양한 Conneection Pool중 HikariCP를 
 
 ```
 
-하지만 아직 까지도 우리는 SQL문을 작성하고 해야한다. 아직 수작업이 더 필요한 상황이다. 이를 더 개선하기 위한 Spring Data JPA를 확인해보도록 하자. [Spring Data JPA CS](#7-spring-boot-jdbctemplate)
+하지만 아직 까지도 우리는 SQL문을 작성하고 해야한다. 아직 수작업이 더 필요한 상황이다. 이를 더 개선하기 위한 Spring Data JPA를 확인해보도록 하자. [Spring Data JPA CS](https://github.com/silberbullet/server-developer-cs-collection/blob/main/spring/springDataJPA/springDataJpa.md)

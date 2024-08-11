@@ -10,6 +10,7 @@ Spring Boot는 Spring Framework을 쉽게 사용하기 위해 나온 기술</br>
 4. [Spring의 AutoConfiguration](#4-spring-boot의-autoconfiguration)
 5. [Spring Boot의 run](#5-spring-boot의-run)
 6. [Spring Boot는 HikariCP를 지향한다](#6-spring-boot는-HikariCP를-지향한다.)
+7. [Spring Boot JdbcTemplate](#7-spring-boot-jdbctemplate)
 
 ### 1. 스프링 부트란?
 
@@ -179,3 +180,61 @@ Spring Boot 문서를 참조해보면 다양한 Conneection Pool중 HikariCP를 
 ```
 
 위와 같이 지속적으로 Connection을 반환하지 않고 가져오게 된다면 Hikari는 더 이상 가져올 connection이 없어 서버가 죽어버리게 된다.
+
+### 7. Spring Boot JdbcTemplate.
+
+여기까지 정리하면 Spring Boot의 JDBC 생태계는 이렇다.
+
+- `JDBC`: 자바에서 데이터베이스와 상호작용하기 위한 표준 API입니다. JDBC는 데이터베이스와 연결하고 SQL 쿼리를 실행하는 방법을 정의하는 인터페이스와 클래스들을 제공합니다. 여기서 주의할 점은 JDBC랑 Connection Pool이 엄연히 다른 개념이라는 것입니다. DB 상호작용할 때 쓰이지만 JDBC는 자바 애플리케이션이 DB에 접근하고, SQL 쿼리를 실행하며, 그 결과를 처리하기 위한 API입니다. `Connection Pool`은 DB 연결을 효율적으로 관리하기 위한 메커니즘이라고 보면 됩니다.
+
+- `HikariCP`: JDBC를 사용하여 데이터베이스 연결을 효율적으로 관리하는 커넥션 풀링 라이브러리입니다. HikariCP는 JDBC를 기반으로 데이터베이스 연결을 재사용하고, 성능을 최적화하는 기능을 제공합니다. 자주 사용되는 데이터베이스 연결을 미리 생성해두고, 필요할 때마다 이 연결을 재사용할 수 있도록 해줍니다.
+
+- `DataSource` : 자바의 JDBC API에서 DB 연결을 관리하는데 사용되는 인터페이스 이다.
+
+그렇다면 `JdbcTemplate`은 결국 Spring 프레임워크에서 제공하는 클래스로, JDBC를 보다 쉽게 사용할 수 있도록 도와주는 유틸리티 클래스 이다. JDBC 코드의 양을 줄이고 DB 작업을 간편하게 처리할 수 있도록 도와주는 클래스이다. JDBC를 생으로 쓰면 반복적인 연결 생서, SQL 실행, 예외 처리, 리소스 관리등을 자동화 하여 개발자가 더 간단하게 DB와 상호작용할 수 있게 해준다.
+
+```java
+
+    // 기존의 Connection을 이용한 DB 접근
+
+    String sql = "INSERT INTO MEMBER(member_id, money) VALUES (?, ?)";
+
+    Connection con = null;
+    PreparedStatement pstmt = null;
+
+    try {
+        con = getConnection();
+        pstmt = con.prepareStatement(sql);
+        pstmt.setString(1, member.getMemberId());
+        pstmt.setInt(2, member.getMoney());
+        pstmt.executeUpdate();
+        return member;
+    } catch (SQLException e) {
+        throw exceptionTranslator.translate("save", sql, e);
+    } finally {
+        // TCP/IP 커넥션으로 연결되기 때문에 자원 해제해줘야 함
+        close(con, pstmt, null); // 현재 코드에는 없지만 자원을 해제해주는 사용자 정의 메서드
+    }
+
+```
+
+```java
+
+    // JdbcTemplate 사용할 때 이용한 DB 접근
+    // 불필요한 Connect, 예외처리, statement가 사라진걸 확인 할 수 있다.
+    ...
+    private final JdbcTemplate template;
+    public MemberRepository(DataSource dataSource) {
+        this.template = new JdbcTemplate(dataSource);
+    }
+    ...
+
+    @Override
+    public Member save(Member member) {
+        String sql = "INSERT INTO MEMBER(member_id, money) VALUES (?, ?)";
+        template.update(sql, member.getMemberId(), member.getMoney());
+    return member;
+
+```
+
+하지만 아직 까지도 우리는 SQL문을 작성하고 해야한다. 아직 수작업이 더 필요한 상황이다. 이를 더 개선하기 위한 Spring Data JPA를 확인해보도록 하자. [Spring Data JPA CS](#7-spring-boot-jdbctemplate)

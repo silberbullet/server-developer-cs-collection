@@ -60,27 +60,81 @@ Data를 관리하기 위해서 관계형 DB(MySql, Oracle)를 쓰고, NoSql(Mong
     }
 ```
 
-`'org.springframework.boot:spring-boot-starter-data-jpa'` 라이브러리를 가져오게 되면 Spring Boot AutoConfigure을 통해 `HibernateJpaAutoConfiguration` 설정 파일을 읽게 된다. 해당 클래스도 JDBC를 사용하기 때문에 dataSource 프로퍼티를 applicatioin.yml에서 읽어오게 되고, JPA 프로퍼티스 설정도 읽게 된다. **설정이 안되면 빌드 실패가 일어난다.**
+`'org.springframework.boot:spring-boot-starter-data-jpa'` 라이브러리를 가져오게 되면 Spring Boot AutoConfigure을 통해 `HibernateJpaAutoConfiguration` 설정 파일을 읽게 된다. 해당 클래스도 JDBC를 사용하기 때문에 dataSource 프로퍼티를 applicatioin.yml에서 읽어오게 되고, JPA 프로퍼티스 설정도 읽게 된다.
+**설정이 안되면 빌드 실패가 일어난다.**
 
 ```yaml
-    // 설정 예시
+    # 설정 예시
     spring:
-        // DB 연결 설정
+        # DB 연결 설정
         datasource:
             url: jdbc:mysql://localhost:3306/transaction
             username: root
             password: root1234
             driver-class-name: com.mysql.cj.jdbc.Driver
-        // JPA 설정
+        # JPA 설정
         jpa:
-            show-sql: true
-            generate-ddl: false
+            generate-ddl: false  # Spring Data JPA가 DDL을 생성하지 않도록 설정
             hibernate:
-                ddl-auto: none
-                naming:
-                    physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
+              ddl-auto: update  # Hibernate의 스키마 자동 처리 전략 설정 (올바른 값으로 설정 필요)
             properties:
-                hibernate:
-                    dialect: org.hibernate.dialect.MySQL8Dialect
-
+              hibernate:
+                show_sql: true  # SQL 쿼리를 로그에 출력
+                format_sql: true  # SQL 쿼리를 보기 좋게 포맷팅
+                use_sql_comments: false  # SQL 주석 사용 여부
+                id.new_generator_mappings: true  # 새로운 Identifier Generator 전략 사용
+                dialect: org.hibernate.dialect.MySQL8Dialect  # MySQL 8을 위한 Hibernate 방언 설정
+                naming.physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl  # 물리적 네이밍 전략 설정
 ```
+각각 JPA 기본적인 프로퍼티스 설정 내용은 이렇다. 여기서 `ddl-auto`의 특성은 이렇다.
+ 
+    none: 아무 작업도 하지 않음.
+    validate: 엔티티 클래스와 데이터베이스 스키마를 비교하여 일치하는지 검증만 함.
+    update: 엔티티 클래스의 변경 사항에 따라 데이터베이스 스키마를 업데이트함.
+    create: 애플리케이션 시작 시 데이터베이스 스키마를 새로 생성함.
+    create-drop: 애플리케이션 시작 시 스키마를 생성하고, 애플리케이션 종료 시 이를 삭제함.
+
+만약 테스트용으로 사용하고 싶다면 update를 추천 드리며, 운영 환경에서는 얘기치 않는 결과를 방지하기 위해 `validate`나 `none`으로 설정하고, 스키마 변경은 수동으로 관리하는 것이 좋다.
+`generate-ddl`도 Spring Data JPA가 스키마를 생성할지 여부를 결정하는 용도로 쓰인다. 하지만 `ddl-auto`가 더 세밀하기 때문에 `ddl-auto`를 권장한다.
+**`jpa.propeties.hibernate.dialect`** 는 JPA가 해당 DBMS에 문법을 사용하기 위한 설정이다. 
+
+## 3.EntityManger
+
+**JPA에서 가장 중요한 객체는 `EntityManager`라고 말한다.** Spring boot (jpa 라이브러리 포함) 를 실행하게 된다면 EntityManagerFactory 빈이 자동으로 생성 된다. `JPA는 본래 EntityManger를 사용하여 프로그래밍이 시작된다.`
+그걸 가능하게 해주기 위해 Spring Data JPA는 EntityManager를 제공하는 것이다. 
+
+다음 JPA 기본 코딩 방식을 보자.
+
+```java
+    @SpringBootApplication
+    public class TransactionApplication implements CommandLineRunner {
+
+        public static void main(String[] args) {
+            SpringApplication.run(TransactionApplication.class, args);
+        }
+
+        @Autowired
+        EntityManagerFactory entityManagerFactory;
+
+        @Override
+        public void run(String... args) throws Exception {
+            
+            EntityManager entityManager = entityManagerFactory.createEntityManger();
+            
+            EntityTransaction transaction = entityManager.getTransaction();
+            
+            try{
+                transaction.begin();
+                // JPA 관련된 코드
+                transaction.commit();
+            } catch (Exception e) {
+                transaction.rollback();
+            } finally {
+                entityManager.close();
+            }
+        }
+    }
+```
+> 엔티티는 ORM과 DB 설계에서 중요한 개념으로 DB 테이블과 매핑되는 클래스 또는 그 클래스를 기반으로 한 객체를 의미한다.
+
+`EntityManger`는 엔티티를 저장하고, 수정하고, 삭제하고, 조회하는 등 엔티티와 관련된 모든 일을 처리한다. 이름 그대로 엔티티를 관리하는 관리자다. 

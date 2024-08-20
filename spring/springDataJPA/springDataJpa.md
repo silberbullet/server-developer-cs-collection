@@ -164,6 +164,8 @@ import java.time.temporal.Temporal;
 
 @Entity
 @Table(name = "member")
+@Getter
+@Setter
 public class Member {
 
     @Id
@@ -185,15 +187,74 @@ public class Member {
      */
     private RoleType roleType;
 
-    @Column(name = "create_date")
+    @Column(name = "reg_date")
     @Temporal(TemporalType.TIMESTAMP)
     /**
      * 날짜 타입은 @Temporal을 사용하여 매핑한다.
      */
-    private Date createDate;
+    private Date regDate;
+    
+    @Lob
+    /**
+     *  회원을 설명하는 필드는 길이 제한이 없다. 따라서 DB에 CLOB 타입으로 저장해야 할 경우 @Lob을 사용한다.
+     */
+    private String descriptioin;
 }
 
 public enum RoleType {
     ADMIN, USER
 }
 ```
+regDate를 대신 다음 같이 사용 할 수도 있다.
+
+```java
+
+    // 현재시간이 저장 될 때 자동으로 생성
+    @CreationTimeStamp
+    private LocalDateTime regdate;
+
+```
+
+그렇다면 이 Member를 가지고 EntityManger를 이용해서 트랜잭션을 만들어보면 다음과 같다. 
+
+```java
+    @SpringBootApplication
+    public class TransactionApplication implements CommandLineRunner {
+
+        public static void main(String[] args) {
+            SpringApplication.run(TransactionApplication.class, args);
+        }
+
+        @Autowired
+        EntityManagerFactory entityManagerFactory;
+
+        @Override
+        public void run(String... args) throws Exception {
+            
+            EntityManager entityManager = entityManagerFactory.createEntityManger();
+            
+            EntityTransaction transaction = entityManager.getTransaction();
+            
+            try{
+                transaction.begin();
+                // JPA 관련된 코드
+                Member member = new Member();
+                
+                member.setUserId("user");
+                member.setUserName("경우");
+                member.setuserAge(29);
+                member.setRoleType("USER");
+                
+                // insert 문이 실행하게 된다.
+                entityManager.persist(member);
+                
+                transaction.commit();
+            } catch (Exception e) {
+                transaction.rollback();
+            } finally {
+                entityManager.close();
+            }
+        }
+    }
+```
+> 앞으로 DB 설계 시 Drawio 사이트 추천한다. [Draw.io](https://app.diagrams.net/)

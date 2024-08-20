@@ -138,3 +138,62 @@ Data를 관리하기 위해서 관계형 DB(MySql, Oracle)를 쓰고, NoSql(Mong
 > 엔티티는 ORM과 DB 설계에서 중요한 개념으로 DB 테이블과 매핑되는 클래스 또는 그 클래스를 기반으로 한 객체를 의미한다.
 
 `EntityManger`는 엔티티를 저장하고, 수정하고, 삭제하고, 조회하는 등 엔티티와 관련된 모든 일을 처리한다. 이름 그대로 엔티티를 관리하는 관리자다. 
+
+## 4. 엔티티 매핑
+
+JPA를 사용해서 테이블과 매핑할 클래스는 `@Entity` 어노테이션을 필수로 붙여야 한다. @Entity가 붙은 클래스는 JPA가 관리하는 것으로, 엔티티라 부른다. 
+**@Entity 사용 시 주의 상황은 다음과 같다**
+
+    - 기본 생성자는 필수다. (파라미터가 없는 public 또는 protected 생성자) // 그래서 기본적으로 @NoArgsConstructor 을 붙인다.
+    - final 클래스, enum, interface, inner 클래스에는 사용할 수 없다. 
+    - 저장할 필드에 final을 사용하면 안된다.
+
+`@Table`은 엔티티와 매핑할 테이블을 지정한다. 생략하면 매핑한 엔티티 이름을 테이블 이름으로 사용한다.
+@Table 속성은 다음과 같다. 
+    
+    - name : 매핑할 테이블 이름
+    - catalog : catalog 기능이 있는 데이터베이스에서 catalog를 매핑한다.
+    - schema : schema 기능이 있는 데이터베이스에서 schema를 매핑한다.
+    - uniqueConstraints : DDL 생성 시에 유니트 제약 조건을 만든다. 2개 이상의 복합 유니크 제약 조건도 만들 수 있다. 참고로 이기능은 스키마 자동 생성 기능을 사용해서 DDL을 만들 때만 사용된다.
+
+@Entity가 붙은 클래스는 키 값이 필수이다. `@Id` 어노테이션을 붙인 필드명이 필요하다. 각 필드가 테이블 컬럼에 매핑할 수 있도록 해주는 어노테이션은 `@Column`이다. 
+아래 회원 도메인을 예로 들어보자.
+
+```java
+import java.time.temporal.Temporal;
+
+@Entity
+@Table(name = "member")
+public class Member {
+
+    @Id
+    @Column(name = "user_id")
+    private String userId;
+
+    @Column(name = "user_name")
+    private String userName;
+
+    @Column(name = "user_age")
+    private Integer userAge;
+
+    @Column(name = "role_Type")
+    @Enumerated(EnumType.String)
+    /**
+     * 자바의 enum을 사용해서 회원의 타입을 구분했다
+     * 일반 회원은 USER, 관리자는 ADMIN이다. enum으로 매핑 시 
+     * @Enumerated 어노테이션 매핑 필요
+     */
+    private RoleType roleType;
+
+    @Column(name = "create_date")
+    @Temporal(TemporalType.TIMESTAMP)
+    /**
+     * 날짜 타입은 @Temporal을 사용하여 매핑한다.
+     */
+    private Date createDate;
+}
+
+public enum RoleType {
+    ADMIN, USER
+}
+```

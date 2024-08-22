@@ -266,3 +266,10 @@ JPA를 이애하는 데 가장 중요한 용어는 `영속성 컨텍스트`이�
 
 ![persistenceContext drawio](https://github.com/user-attachments/assets/fd48ae17-a80e-403a-ade2-ae8a75de9b89)
 
+
+`EntityManager`는 find() 명령을 실행 시, DB에서 찾아온 값을 영속성 컨테스트에 저장한다. Entity는 영속성 컨테스트에 저장된 `원본 엔티티`를 참조하게 된다. **User1과 User2는 같은 User를 참조하고 있기 때문에 두개는 같은 객체이다.**
+
+여기서 User1이 `setPassword('5678')`을 통해 비밀번호를 변경했다고 가정해보자. User2 또한 getPassword시 `5678` 값을 가져오게 된다. 
+
+비밀번호가 변경된 시점에서 commit() 시, 중요한 상황이 있다. **find()시 영속성 컨테스트에는 `원본 엔티티`의 복사본인 `스냅샷`을 생성한다. **commit시 `원본 엔티티`와 `스냅샷`을 비교하여 차이가 있다면 `원본 엔티티`를 update 처리한다**
+우리는 setPassword를 통해서 `원본 엔티티`의 비밀번호를 바꾸었고, 영속성 컨테스트는 `스냅샷`과 비교하여 변화를 감지하고 `UPDATE`처리가 일어나게 된다.

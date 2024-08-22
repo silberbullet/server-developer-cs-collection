@@ -263,3 +263,6 @@ regDate를 대신 다음 같이 사용 할 수도 있다.
 
 JPA를 이애하는 데 가장 중요한 용어는 `영속성 컨텍스트`이다 . `엔티티를 영구 저장하는 환경`이라는 뜻으로써 엔티티 매니저로 엔티티를 저장하거나 조회하면 엔티티 매니저는 영속성 컨텍스트에 엔티티를 보관하고 관리한다.
 다음 그림을 확인해보자.
+
+![persistenceContext drawio](https://github.com/user-attachments/assets/fd48ae17-a80e-403a-ade2-ae8a75de9b89)
+

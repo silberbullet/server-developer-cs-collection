@@ -273,3 +273,52 @@ JPA를 이애하는 데 가장 중요한 용어는 `영속성 컨텍스트`이�
 
 비밀번호가 변경된 시점에서 commit() 시, 중요한 상황이 있다. **find()시 영속성 컨테스트에는 `원본 엔티티`의 복사본인 `스냅샷`을 생성한다. **commit시 `원본 엔티티`와 `스냅샷`을 비교하여 차이가 있다면 `원본 엔티티`를 update 처리한다**
 우리는 setPassword를 통해서 `원본 엔티티`의 비밀번호를 바꾸었고, 영속성 컨테스트는 `스냅샷`과 비교하여 변화를 감지하고 `UPDATE`처리가 일어나게 된다.
+
+## 6. JPA 키 생성 전략
+
+Entity에 @Id 어노테이션을 붙인 필드는 그 테이블에 key를 설정한다. JPA가 제공하는 DB 기본 키 생성 전략은 다음과 같다.
+
+1. 직접 할당 : 기본 키를 애플리케이션에서 직접 할당한다.
+
+2. 자동 생성 : 대리 키 사용 방식
+   
+   1) IDENTITY : 기본 키 생성을 DB에 위임한다.
+      - 주로 MySQL, PostgreSQL, SQL server, DB2에서 사용.
+      - IDENTITY 전략은 MySQL의 AUTO_INCREAMENT 처럼 DB에 값을 저장하고 나서야 기본 키 값을 구할 수 있을 때 사용.
+      - @GenerateValue(strategy = GenerationType.IDENTITY) 어노테이션 설정
+      - **IDENTITY 생성 전략은 DB에 엔티티를 `즉시 저장`하고 JPA에서 조회 후 식별자를 정함. 그래서 `쓰기 지연`이 동작을 안함**
+      - JDBC3의 Statement.getGeneratedKeys()를 사용하면 데이터 저장과 동시에 기본 키 값을 할당 받음 ( Hibernate에서 사용 중 )
+   
+   2) SEQUENCE : DB 시퀀스르 사용해서 기본 키를 할당한다.
+      - 주로 Oracle, PostgreSQL, DB2, H2에서 사용
+      - `@SequenceGernerator` 어노테이션으로 시퀀스 생성기를 생성. 
+      - @GenerateValue(strategy = GenerationType.SEQUNCE , generator = "시퀀스 생성기 이름") 어노테이션 설정
+      - 시퀀스 증가 값은 기본적으로 50 임, `allocationSize = 50` ( 성능 최적화를 위해 )
+      - **SEQUENCE 전략은 시퀀스를 통해 식별자를 조회하는 추가 작업이 필요하여 DB와 `2번` 통신함**
+      - **JPA는 이를 해결하기 위해 allocationSize값을 50을 기본값으로 설정함, JVM이 동시에 동작해도 기본 값이 충돌하지 않음**
+
+   3) TABLE : 키 생성 테이블을 사용한다.
+      - 키 생성 전용 테이블 하나 만들고 여기에 이름과 값으로 사용할 컬럼을 만들어 DB 시퀀스를 흉내내는 것.
+   
+   4) AUTO : @GenerateValue(strategy = GenerationType.AUTO) 는 선택한 DBMS에 따라 전략을 알아서 설정.
+
+김영한 님이 말아주는 권장하는 식별자 선택 전략
+
+1. DB 기본키는 3가지 조건을 만족할 것 
+    - NULL 값 허용 X
+    - 유일성
+    - 변해선 안됨
+   
+2. 테이블의 기본 키를 선택하는 전략은 크게 2가지
+    - 자연키
+      - 비즈니스에 의미가 있는 키 ( 주민번호, 이메일, 전화번호 )
+    - 대리 키
+      - 비즈니스와 관련 없은 임의로 만들어진 키, 대체 키로도 불림 ( 오라클 시퀀스, auto_increment)
+
+3. 자연 키보다는 `대리 키`를 권장
+
+4. 비즈니스 환경은 언젠간 변한다.
+   - 기본키의 조건을 현재는 물론이고 **미래까지 충족하는 자연 키를 찾기는 쉽지 않다.**
+
+5. JPA는 모든 엔티티에 일괄된 방식으로 대리 키 사용을 권장한다.
+

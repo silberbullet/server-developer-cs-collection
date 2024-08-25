@@ -322,3 +322,55 @@ Entity에 @Id 어노테이션을 붙인 필드는 그 테이블에 key를 설정
 
 5. JPA는 모든 엔티티에 일괄된 방식으로 대리 키 사용을 권장한다.
 
+## 7. JPA Entity 매핑 
+
+만약 상품 테이블과 주문 테이블이 존재한다고 가정해보자. 상품 하나의 주문이 여러개 일 수 있으니, 상품과 주문은 1:N ( 혹은 N:1 ) 관계를 가진다.
+RDBS 기준으로 본다면 주문에는 상품 코드가 외래키로 쓰인다. **두 개의 엔티티에는 외래키 참조 형식이 필요하다**
+
+`N:1` 관계로 엔티티 객체를 매핑 할 때는 JPA는 다음과 같이 쓰인다.
+
+```java
+
+@Entity
+@Table(name = "order_item")
+@NoArgsConstructor
+@Getter
+public class OrderItem extends BaseEntity {
+
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "ord_id")
+    private long id;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "item_id")
+    private Item item;
+
+    @Column(name="ord_cnt", nullable = false)
+    private Integer ordCnt;
+
+    @Column(name="ord_prc", nullable = false)
+    private Integer ordPrc;
+}
+
+```
+
+   - @ManyToOne : 다대일 관계라는 매핑 정보, 연관계를 매핑할 때 다중성을 나타내는 어노테이션 필수
+     - fetch 
+       - FetchType.LAZY: 연관된 엔티티를 실제로 접근할 때 로드. 메모리 효율적이지만, 잘못 사용하면 예상치 못한 쿼리 발생으로 성능 문제가 발생 (N+1 문제)
+         ```java
+               Order order = orderRepository.findById(orderId).get();  // 이 시점에서는 customer가 로드되지 않음
+               Item item = order.getItem();  // 이 시점에서야 customer가 로드됨 (쿼리 발생)
+         ```
+         - **N+1 발생하는 예제** 
+            ```java
+                // Orders를 한 번의 쿼리로 조회
+               List<Order> orders = orderRepository.findAll();  // (1)번 쿼리 발생
+               
+               for (Order order : orders) {
+               System.out.println(order.getItem().getName());  // N번의 쿼리 발생 (각 주문마다 상품 조회)
+               }
+            ```
+
+       - FetchType.EAGER: 연관된 엔티티를 즉시 로드. 이후의 데이터베이스 접근을 줄일 수 있지만, 필요 없는 데이터를 로드함으로써 성능 저하가 발생
+
+   - @JoinColumn(name = "item_id") : 외래 키를 매핑할 때 사용, 주문은 상품코드를 외래키로 쓰인다.

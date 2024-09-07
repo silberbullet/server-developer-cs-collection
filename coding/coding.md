@@ -72,3 +72,81 @@ SRP원리를 적용하면 무엇보다도 책임 영역이 확실해지기 때�
     
 `CQRS의 이벤트 소싱`
 이벤트소싱이란 모든 명령(Command)을 이벤트 형태로 별도의 이벤트 저장소에 저장한다. 이 명령들은 자연스럽게 다시 사용할 수 있습니다. 강한 일관성 및 실시간 업데이트가 필요한 시스템에는 적합하지 않을 수 있습니다.
+
+## 3. SSH 터널링
+
+SSH는 원격 호스트로 접속하기 위해 쓰이는 프로토콜, 그 중 SSH 터널링은 **SSH 연결을 통해서 방화벽을 우회, 앱 서버에 정보를 전달하고 데이터를 받을 수 있다. 일종의 프록시 역할을 한다.**
+
+SSH 터널리을 이용하면 기존에 서비스 중이던 앱 서버를 재구동하지 않고도 방화벽을 우회 접근할 수 있다는 장점이 있다. 또, SSH 연결을 안전하게 암호화되기 때문에 앱 클라이언트와 서버가 암호화된 통신을 지원하지 않는 경우 SSH 터널링을 이용해서 암호화된 통신을 사용할 수 있다.
+
+물론 방화벽을 우회하기 때문에 방화멱의 목적을 훼손하는 방법이며 각종 보안 홀을 야기할 수 있다.
+
+- SSH 터널링 서버 구성
+
+```shell
+
+sudo vi /etc/ssh/sshd_config
+
+#AllowTcpForarding, GatewayPorts 옵션 yes로 설정
+
+sudo systemctl restart sshd 
+# 혹은
+sudo service sshd restart
+```
+
+SSH 터널링 종류
+
+### SSH 터널링 종류
+
+#### 1. Local Port Forwarding (로컬 포트 포워딩)
+
+로컬 클라이언트(Host A)에서 원격 서버(Host B)로 특정 포트의 트래픽을 SSH 연결을 통해 전달하는 방법입니다. 이를 통해 Host A에서 직접 접근할 수 없는 포트를 우회하여 접속할 수 있습니다.
+
+##### 사용법
+# 로컬 포트 <local_port>에서 원격 서버 <remote_host>의 <remote_port>로 연결
+ssh -L <local_port>:<remote_host>:<remote_port> <user>@<remote_host>
+
+##### 예시
+# 로컬 포트 1234에서 HOSTB의 3036 포트로 연결
+ssh -L 1234:HOSTB:3036 user@hostB
+
+- Host A에서 `localhost:1234`로 접속하면 Host B의 `3036` 포트에 연결됩니다.
+- **유용한 경우**: Host B의 특정 포트(예: 3036)가 방화벽 등으로 막혀 있을 때.
+
+---
+
+#### 2. Remote Port Forwarding (원격 포트 포워딩)
+
+원격 서버(Host B)의 특정 포트로 들어오는 트래픽을 SSH 연결을 통해 로컬 클라이언트(Host A)로 전달하는 방법입니다. 원격 서버가 외부에서 접근하기 어려운 경우 유용합니다.
+
+##### 사용법
+**원격 서버 <remote_host>의 <remote_port>로 들어오는 트래픽을 로컬 <local_port>로 전달**
+ssh -R <remote_port>:localhost:<local_port> <user>@<remote_host>
+
+##### 예시
+**원격 서버의 1234 포트에서 로컬의 8080 포트로 트래픽 전달**
+ssh -R 1234:localhost:8080 user@hostB
+
+- Host B에서 `localhost:1234`로 접속하면 Host A의 `8080` 포트에 연결됩니다.
+- **유용한 경우**: 외부에서 Host A의 포트(예: 8080)에 접근하고 싶을 때.
+
+---
+
+#### 3. Dynamic Port Forwarding (동적 포트 포워딩)
+
+동적 포트 포워딩은 SSH 서버를 통해 다양한 목적지로의 트래픽을 전달하며, SSH 서버를 SOCKS 프록시로 사용할 수 있습니다. 이를 통해 여러 네트워크 요청을 유연하게 처리할 수 있습니다.
+
+##### 사용법
+**로컬 <local_socks_port>에서 SSH 서버를 통해 다양한 목적지로 트래픽을 전달 (SOCKS 프록시)**
+ssh -D <local_socks_port> <user>@<remote_host>
+
+##### 예시
+**로컬 포트 1080에서 SSH 서버를 통해 트래픽을 SOCKS 프록시로 전달**
+ssh -D 1080 user@hostB
+
+- Host A에서 `localhost:1080`을 통해 SOCKS 프록시를 사용하여 외부 네트워크에 연결할 수 있습니다.
+- **유용한 경우**: Host A가 Host B를 통해 여러 목적지로 트래픽을 라우팅해야 할 때.
+
+---
+
+각 포워딩 방식은 방화벽 우회, 보안 트래픽 전송, 또는 프록시 설정 등 다양한 상황에서 유용하게 사용할 수 있습니다.

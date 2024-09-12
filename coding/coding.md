@@ -53,7 +53,78 @@ public class PaypalProcessor implements PaymentProcessor {
 }
 ```
 
+OCP의 궁극적인 목적은 **기존 코드를 건드리지 않고도 새로운 기능을 추가할 수 있어야 한다는 의미이다.** 다음 예시로 우리는 기존 코드를 굳이 건드리지 말아야 한다는 이유를 알 수 있다.
 
+```java
+public class ReportService {
+    public void generateReport(String type) {
+        if (type.equals("PDF")) {
+            System.out.println("Generating PDF report");
+        } else if (type.equals("HTML")) {
+            System.out.println("Generating HTML report");
+        } else if (type.equals("CSV")) {
+            System.out.println("Generating CSV report");
+        }
+    }
+}
+```
+레포트의 타입 별로 처리해야하는 로직이 있다. 요구사항이 XML 등 파일 타입에 추가에 따른 기능을 요구하게 된다면 `generateReport` 메소드에 다음 과 같이 추가가 일어난다.
+
+```java
+else if (type.equals("XML")) {
+        System.out.println("Generating XML report");
+}
+```
+
+새로운 if-else문 추가에 따른 기존 코드를 계속 수정해 나간다면, **버그 발생 가능성을 높이고, 코드 유지보수가 어려워진다.** 다음과 같이 바꿔보자
+
+```java
+
+public  interface  ReportGenerator{
+    void generateReport();
+}
+
+public class PdfGenerator implements ReportGenerator{
+    @Override
+    public void generateReport(){
+        System.out.println("Generating PDF report");
+    }
+}
+
+public class ReportService {
+    
+    private ReportGenerator reportGenerator;
+    
+    public ReportService(ReportGenerator reportGenerator){
+        this.reportGenerator = reportGenerator;
+    }
+    
+    public void generateReport(){
+        reportGenerator.generateReport();
+    }
+    
+}
+
+// 이제 ReportServices는 파일 타입을 별로 주입을 받아 사용이 가능하다.
+```
+
+이제 PDF 파일이 아닌 HTML 생성에 요구사항을 받게 된다면 **HtmlGenerator를 추가하고 generateReport()** 메소드를 작성해주면 된다.
+
+- 주의사항
+    - **확장되는 것과 변경되지 않는 모듈을 분리하는 과정에서 크기 조절에 실패**하면 오히려 더 복잡해짐
+    - **인터페이스는 가능하면 변경되어 서는 안됨**
+    - **모든 설계에서 적당한 추상화 레벨이 필요함**
+      - 추상화는 다른 모든 종류의 객체로 부터 식별될 수 있는 객체의 본질적인 특징
+      - 행위에 대한 본질적인 정의를 통해 식별
+
+- 인터페이스 외에 다른 OCP 구현
+  - 상속
+  - 전략 패턴
+    - ReportService에 setReportGenerator()을 함으로써 전략적으로 ReportGenerator을 처리
+      - **시스템 동작 중에 언제든 ReportGenerator이 바뀔 수 있어, 불변성이 깨짐**
+      - 해당 업무 혹은 논리가 불변성이 강해야 한다면 `비추천`
+  - 함수형 프로그래밍
+    - java.util.function.Consumer 의 accept를 통해 기존 클래스를 정의하지 않고 새로운 동작을 정의
 
 ## 2. CQRS 패턴
 

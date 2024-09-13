@@ -126,6 +126,176 @@ public class ReportService {
   - 함수형 프로그래밍
     - java.util.function.Consumer 의 accept를 통해 기존 클래스를 정의하지 않고 새로운 동작을 정의
 
+3. LSP (리스코브 치환의 원칙 : The Liskov Substitution Principle)
+
+- 정의
+
+서브 타입은 언제나 기반 타입이 약속한 규약 (public 인터페이스, 물론 메소드가 저니느 예외까지 포함)을 지켜야 한다. 상속은 구현상속이든 인터페이스 상속이든
+궁극적으로 다형성을 통한 확장성 획득을 목표로 한다. 
+
+```java
+// LSP 이해도를 높이기 위한 예시
+// 다음은 LSP 원칙을 위반한 코드 이다.
+
+    public class Bird {
+    
+        void fly (){
+            System.out.println("I can fly");
+        }
+    }
+
+    public class Eagle extends  Bird{
+    
+        @Override
+        void fly (){
+            throw new RuntimeException("hi i'm error bird");
+        }
+    }
+```
+
+서브 클래스 `Eagle`은 `Bird`클래스가 정의한 fly()에서 에러가 없는 print 문이 출력이 되어야 하지만 이를 어겼다.
+
+- 적용방법
+**부모 클래스 행동 규약을 자식 클래스가 위반하지 않도록 설계**가 중요하다. `행동 규약`을 위반한다는 것은 자식 클래스가 `오버라이딩`을 할때, 잘못되게 재정의하면 리스코프 치환 원칙을 위배할 수 있다는 의미다.
+
+  - 계약 관계 잘 잘 지키기
+  - 확장에도 열려 있기
+  - 서브 클래스가 슈퍼 클래스의 일부 메소드만 사용하면 의미가 없다
+  - 서브 클래스가 정말로 슈퍼 클래스와 공통점이 없다면 위임으로 변경하기 전에 상속을 제거
+  - 추상 팩토리 패턴을 쓰는 방법도 좋다.
+    - 여러 제품군 중 하나를 선택해서 시스템을 설정 한다던지, 제품에 대한 클래스 라이브러리를 제공하고, 그들의 구현이 아닌 인터페이스를 노출시키고 싶을 때
+
+```java
+// 추상 팩토리 패턴 예
+interface Payment {
+  // 인증
+  void authenticate();
+  // 승인
+  void authorization();
+}
+
+interface PaymentMethod {
+  void process(Payment payment);
+  void pay();
+}
+
+public class Main {
+  public static void main(String[] args) {
+    // 신용카드 결제
+    Payment creditCardPayment = new CreditCardPayment();
+    PaymentMethod creditCardMethod = new CreditCardMethod();
+    creditCardMethod.process(creditCardPayment);
+
+    // PayPal 결제
+    Payment payPalPayment = new PayPalPayment();
+    PaymentMethod payPalMethod = new PayPalMethod();
+    payPalMethod.process(payPalPayment);
+  }
+}
+```
+4. ISP ( 인터페이스 분리의 원칙 : Interface Segreation Principle)
+
+- 정의
+
+한 클래스는 자신이 사용하지 않는 인터페이스는 구현하지 말아야 한다는 원리이다. 즉, **어떤 클래스가 다른 클래스에 종속될 때에는 가능한 최소한의 인터페이스만을 사용해야 한다.**
+
+ISP는 `하나의 일반적인 인터페이스보다는, 여러 개의 구체적인 인터페이스가 낫다`라고 정의한다.
+
+SRP가 클래스의 단일책임을 강조한다면 ISP는 인터페이스의 단일 책임을 강조한다. 하지만 ISP는 어떤 클래스 혹은 인터페이스가 여러 책임 혹은 역할을 갖는 것을 인정
+
+```java
+// SRP는 한 클래스는 하나의 책임을 인정하지만
+// ISP는 한 클래스의 여러 역할을 인정한다. 다만 인터페이스는 하나의 역할을 해야 한다.
+
+interface Printer {
+  void print();
+}
+
+interface Scanner {
+  void scan();
+}
+
+class MultiFunctionDevice implements Printer, Scanner {
+  @Override
+  public void print() {
+    System.out.println("Printing document...");
+  }
+
+  @Override
+  public void scan() {
+    System.out.println("Scanning document...");
+  }
+}
+
+```
+
+- 적용 방법
+
+**클래스의 상속을 이용하여 인터페이스를 나누기**
+- Device라는 공통 부모 클래스를 상속받고, 각 자식 클래스인 PrinterDevice와 ScannerDevice가 각기 다른 인터페이스(Printer, Scanner)를 구현
+
+```java
+interface Printer {
+    void print();
+}
+
+interface Scanner {
+    void scan();
+}
+
+// 공통된 기능을 제공하는 부모 클래스
+abstract class Device {
+    String model;
+    public Device(String model) {
+        this.model = model;
+    }
+    
+    public String getModel() {
+        return model;
+    }
+}
+
+// Printer만 구현하는 클래스
+class PrinterDevice extends Device implements Printer {
+    public PrinterDevice(String model) {
+        super(model);
+    }
+    
+    @Override
+    public void print() {
+        System.out.println("Printing from " + getModel());
+    }
+}
+
+// Scanner만 구현하는 클래스
+class ScannerDevice extends Device implements Scanner {
+    public ScannerDevice(String model) {
+        super(model);
+    }
+    
+    @Override
+    public void scan() {
+        System.out.println("Scanning from " + getModel());
+    }
+}
+```
+
+**객체 인터페이스를 통한 분리**
+
+- MultiFunctionDevice가 Printer와 Scanner 두 가지 인터페이스를 구현해 다기능 장치로 동작하지만, 클라이언트는 Printer만 필요할 경우 Printer 인터페이스만 구현하는 PrintOnlyDevice를 사용
+
+**다만 서로 다른 성격의 인터페이스를 명백히 분리한다.**
+
+5. DIP ( 의존성역전의 원칙 : Dependency Inversion Principle )
+
+- 정의
+
+구조적 디자인에서 발생하던 하위 레벨 모듈의 변경이 상위 레벨 모듈의 변경을 요구하는 위계 관계를 끊는 의미의역전이다.
+
+실제 사용 관계는 바뀌지 않으며, 추상을 매개로 메시를 주고 받아 관계를 최대한 느슨하게 만든다.
+
+
+
 ## 2. CQRS 패턴
 
 [참조](https://mslim8803.tistory.com/73)
